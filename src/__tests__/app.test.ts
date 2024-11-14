@@ -1,9 +1,9 @@
 import request from "supertest";
 import { app } from "../index";
 
-describe("GET /api/data", () => {
+describe("GET /", () => {
   it("should return data with dynamic properties and valid values", async () => {
-    const response = await request(app).get("/api/data");
+    const response = await request(app).get("/");
 
     expect(response.status).toBe(200);
 

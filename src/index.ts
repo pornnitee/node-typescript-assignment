@@ -4,7 +4,7 @@ import axios from "axios";
 export const app = express();
 const PORT = 3000;
 
-app.get("/api/data", async (req: Request, res: Response) => {
+app.get("/", async (req: Request, res: Response) => {
   try {
     const response = await axios.get("https://dummyjson.com/users");
     const { users } = response.data;
