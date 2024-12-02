@@ -3,44 +3,68 @@ import axios from "axios";
 
 export const app = express();
 const PORT = 3000;
+interface GroupItemsType {
+  [department: string]: {
+    male: number;
+    female: number;
+    ageRange: string;
+    hair: Record<string, number>;
+    addressUser: Record<string, string>;
+  };
+}
+interface User {
+  gender: "male" | "female";
+  age: number;
+  hair: { color: string };
+  firstName: string;
+  lastName: string;
+  address: { postalCode: string };
+  company: { department: string };
+}
 
 app.get("/", async (req: Request, res: Response) => {
   try {
     const response = await axios.get("https://dummyjson.com/users");
     const { users } = response.data;
-    const groupedItems = users.reduce((accumulator: any, user: any) => {
-      const { department } = user.company;
-      if (!accumulator[department]) {
-        accumulator[department] = {
-          male: 0,
-          female: 0,
-          ageRange: "",
-          hair: {},
-          addressUser: {},
-        };
-      }
+    const groupedItems = users.reduce(
+      (accumulator: GroupItemsType, user: User) => {
+        const { department } = user.company;
+        if (!accumulator[department]) {
+          accumulator[department] = {
+            male: 0,
+            female: 0,
+            ageRange: "",
+            hair: {},
+            addressUser: {},
+          };
+        }
 
-      accumulator[department][user.gender] =
-        (accumulator[department][user.gender] || 0) + 1;
+        accumulator[department][user.gender] =
+          (accumulator[department][user.gender] || 0) + 1;
 
-      accumulator[department]["hair"][user.hair.color] =
-        (accumulator[department]["hair"][user.hair.color] || 0) + 1;
+        accumulator[department]["hair"][user.hair.color] =
+          (accumulator[department]["hair"][user.hair.color] || 0) + 1;
 
-      accumulator[department]["addressUser"][user.firstName + user.lastName] =
-        user.address.postalCode;
+        accumulator[department]["addressUser"][user.firstName + user.lastName] =
+          user.address.postalCode;
 
-      const currentAge = accumulator[department]["ageRange"];
-      const mergedAgeRange = [
-        ...currentAge
-          .split("-")
-          .filter((str: string) => str !== "" && Number(str)),
-        user.age,
-      ];
-      accumulator[department]["ageRange"] = `${Math.min(
-        ...mergedAgeRange
-      )}-${Math.max(...mergedAgeRange)}`;
-      return accumulator;
-    }, {});
+        const currentAge = accumulator[department]["ageRange"];
+        const mergedAgeRange = [
+          ...currentAge
+            .split("-")
+            .filter((str: string) => str !== "")
+            .map((str: string) => Number(str)),
+          user.age,
+        ];
+
+        accumulator[department]["ageRange"] = `${Math.min(
+          ...mergedAgeRange
+        )}-${Math.max(...mergedAgeRange)}`;
+
+        return accumulator;
+      },
+      {}
+    );
 
     app.set("json spaces", 2);
     res.json(groupedItems);
